@@ -19,6 +19,8 @@
 
     <!-- Custom CSS -->
     <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link rel="stylesheet" href="../bower_components/chessboardjs/css/chessboard.css" />
+    <link href="../dist/css/opening.css" rel="stylesheet" />
 
     <!-- Custom Fonts -->
     <link href="../bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -374,7 +376,85 @@
                     <div class="col-lg-12">
                         <h1 class="page-header">Blank</h1>
                     </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9">
+                    <div class="row">
+                    <div class="col-lg-4">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h4 id="current-move">1. e4</h4>
+                                <form role="form">
+                                    <div class="form-group">
+                                        <label>Move annotation</label>
+                                        <select id="move-nag" class="form-control">
+                                            <option value="0"></option>
+                                            <option value="1">good move (!)</option>
+                                            <option value="2">poor move (?)</option>
+                                            <option value="3">very good (!!)</option>
+                                            <option value="4">very poor (??)</option>
+                                            <option value="5">speculative move (!?)</option>
+                                            <option value="6">questionable move (?!)</option>
+                                            <option value="7">forced move</option>
+                                            <option value="8">singular move (no alts)</option>
+                                            <option value="9">worst move</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Comment</label>
+                                        <textarea id="move-comment" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <!--<button type="button" class="btn btn-primary btn-sm">Start sideline</button>-->
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     <!-- /.col-lg-12 -->
+                    <div class="col-lg-8">
+                        <div id="board" style="width: 100%"></div>
+                    </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Pgn</label>
+                                    <textarea id="pgn" class="form-control" rows="6"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="panel panel-default">
+                            <!--<div class="panel-heading">-->
+                                <!--Basic Table-->
+                            <!--</div>-->
+                            <!-- /.panel-heading -->
+                            <div class="panel-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>white</th>
+                                            <th>black</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="moves">
+                                            <tr><td>1</td><td>e4</td><td>e5</td></tr>
+                                            <tr><td>2</td><td>d4</td><td>exd4</td></tr>
+                                            <tr><td>3</td><td>Qxd4</td><td>d6</td></tr>
+                                            <tr><td>4</td><td>Qxg7</td><td>...</td></tr>
+                                            <tr><td class="active" colspan="3"><strong>A)</strong></td></tr>
+                                            <tr><td>5</td><td>...</td><td></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.table-responsive -->
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                        <!-- /.panel -->
+                    </div>
                 </div>
                 <!-- /.row -->
             </div>
@@ -394,8 +474,16 @@
     <!-- Metis Menu Plugin JavaScript -->
     <script src="../bower_components/metisMenu/dist/metisMenu.min.js"></script>
 
+    <script src="../bower_components/chessboardjs/js/chessboard.min.js"></script>
+
+    <script src="../bower_components/chess.js/chess.min.js"></script>
+
     <!-- Custom Theme JavaScript -->
     <script src="../dist/js/sb-admin-2.js"></script>
+
+    <script src="../js/opening.js"></script>
+    <script src="../js/main.js"></script>
+
 
 </body>
 
