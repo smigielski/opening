@@ -366,7 +366,7 @@ var PgnRenderer = function(){
 
      function load(moves) {
          //var moveRegexp = new RegExp(/[KQRBN]?[a-h](x[a-h])?[1-8][\?!]*( \$\w)?(\s+\{.*?\})?|\(.*?\)/g);
-         var moveRegexp = new RegExp(/[\w\d!?+=]+( \$\w)?(\s+\{.*?\})?|\(.*?\)/g);
+         var moveRegexp = new RegExp(/[\w\d!?+=-]+( \$\w)?(\s+\{.*?\})?|\(.*?\)/g);
          var move = '';
          var no = 0;
          //var result = moveRegexp.exec(ms);

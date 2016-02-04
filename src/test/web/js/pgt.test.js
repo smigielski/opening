@@ -233,7 +233,8 @@ describe("PGP Loader", function() {
         { name: "nested variation", pgn: "1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) )" },
         { name: "double variation", pgn: "1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) ) ( 2. c4 d5 )" },
         { name: "knigth capture", pgn: "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 a6" },
-        { name: "queen", pgn: "1. e4 e5 ( 1. ... d5 2. e5 f5 3. exf6 Kd7 4. fxg7 d4 5. gxh8=Q )"}
+        { name: "queen", pgn: "1. e4 e5 ( 1. ... d5 2. e5 f5 3. exf6 Kd7 4. fxg7 d4 5. gxh8=Q )"},
+        { name: "castle", pgn: "1. e4 e5 2. Bc4 Bc5 3. Nf3 Nf6 4. O-O"}
     ];
 
     var game, opening;
