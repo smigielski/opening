@@ -4,6 +4,8 @@ if (!Array.prototype.last){
     };
 }
 
+var POSSIBLE_RESULTS = ['1-0', '0-1', '1/2-1/2', '*'];
+
 var HtmlRenderer = function(doc,fragment){
 
     var currentMove;
@@ -216,16 +218,13 @@ var PgnRenderer = function(){
         return move.next;
     };
 
-    this.setCurrentMove = function(move){
-
-    };
-
     this.renderMoves = function(depth,move,variantNumbers){
         var str = [];
 
         if (move!=null) {
 
             //white move
+            //console.log(move + " : "+variantNumbers + "("+depth+")");
 
             //variants in white move
             if (move.variations.length > 0 && depth<move.depth()){
@@ -233,14 +232,15 @@ var PgnRenderer = function(){
                 variantNumbers.push(number);
                 var variations= move.variations;
                 //str.push(this.renderMoves(depth+1,move,variantNumbers.slice(0)));
-                move = renderSingleMove(str,depth+1,move)
-                for	(index = 0; index < variations.length; index++) {
+                renderSingleMove(str,depth+1,move)
+                for	(var index = 0; index < variations.length; index++) {
                     variantNumbers[depth]++;
                     str.push(renderVariantHeader(variantNumbers));
                     str.push(this.renderMoves(depth+1,variations[index],variantNumbers.slice(0)));
                     str.push(renderVariantFooter());
                 }
-                str.push(this.renderMoves(depth+1,move,variantNumbers.slice(0)));
+                depth = depth+1;
+                //str.push(this.renderMoves(depth+1,move,variantNumbers.slice(0)));
             } else {
                 move = renderMove(str,depth+1,move)
             }
@@ -256,6 +256,238 @@ var PgnRenderer = function(){
         return str.join("").trim();
 
     };
+
+    this.setCurrentMove = function(move){
+    };
+};
+
+ var PgnLoader = function(game, opening,options) {
+
+     getNag = function(nag){
+         switch (nag) {
+             case "$1":
+             case "!": return 1;
+             case "$2":
+             case "?": return 2;
+             case "$3":
+             case "!!": return 3;
+             case "$4":
+             case "??": return 4;
+             case "$5":
+             case "!?": return 5;
+             case "$6":
+             case "?!": return 6;
+             //forced move
+             case "$7":
+             case "□": return 7;
+             //singular move (no alts)
+             case "$8": return 8;
+             //worst move
+             case "$9": return 9;
+             default: return "";
+         }
+
+     };
+
+        function mask(str) {
+            return str.replace(/\\/g, '\\');
+        }
+
+        /* convert a move from Standard Algebraic Notation (SAN) to 0x88
+         * coordinates
+         */
+        function get_move_obj(moveText) {
+            /* strip off any move decorations: e.g Nf3+?! */
+            //FIXME NAG
+            //var move_replaced = move.replace(/=/,'').replace(/[+#]?[?!]*$/,'');
+
+            /* delete comments */
+
+            //console.log(moveText.replace(/(\{[^}]+\})+?/g, '').replace(/\$\d/,''));
+            var move = game.move(trim(moveText.replace(/(\{[^}]+\})+?/g, '').replace(/\$\d/,'')));
+            //check for nag
+
+            if (move!=null){
+                opening.createMove(move);
+                var nagRe = /(([!?]|(\$\d))+)/;
+                var result = nagRe.exec(moveText);
+                if (result!=null){
+                    opening.updateNag(getNag(result[1]));
+                }
+                var commentRe = /{(.*)}/;
+                result = commentRe.exec(moveText);
+                if (result!=null){
+                    opening.updateComment(trim(result[1]));
+                }
+
+
+            }
+
+
+
+            //for (var i = 0, len = moves.length; i < len; i++) {
+            //    if (move_replaced ===
+            //        move_to_san(moves[i]).replace(/=/,'').replace(/[+#]?[?!]*$/,'')) {
+            //        return moves[i];
+            //    }
+            //}
+
+            return move;
+        }
+
+     function matchBracket(str,startIndex){
+        var openBracket = 0;
+         for (i = startIndex;i<str.length;i++){
+             if (str[i]=='('){
+                 openBracket++;
+             } else if (str[i] == ')' ){
+                 openBracket--;
+                 if (openBracket==0){
+                     return i+1;
+                 }
+             }
+         }
+         return -1;
+     };
+
+
+
+        function has_keys(object) {
+            var has_keys = false;
+            for (var key in object) {
+                has_keys = true;
+            }
+            return has_keys;
+        }
+
+     function trim(str) {
+         return str.replace(/^\s+|\s+$/g, '');
+     }
+
+     function load(moves) {
+         //var moveRegexp = new RegExp(/[KQRBN]?[a-h](x[a-h])?[1-8][\?!]*( \$\w)?(\s+\{.*?\})?|\(.*?\)/g);
+         var moveRegexp = new RegExp(/[\w\d!?+=]+( \$\w)?(\s+\{.*?\})?|\(.*?\)/g);
+         var move = '';
+         var no = 0;
+         //var result = moveRegexp.exec(ms);
+         console.log("full:"+moves);
+         while (result = moveRegexp.exec(moves)){
+             console.log(result[0]);
+             variation = result[0].match(/\((.*)\)/);
+             if (variation==null){
+                 no++;
+                 move = get_move_obj(result[0]);
+                 /* move not possible! (don't clear the board to examine to show the
+                  * latest valid position)
+                  */
+                 if (move == null) {
+                     return -1;
+                 }
+             } else {
+                 currentMove = opening.currentMove();
+                 opening.prevMove();
+                 game.undo();
+                 //start variation
+
+                 var endVariation = matchBracket(moves,result.index);
+                 console.log(result.index + " " + endVariation);
+                 moveRegexp.lastIndex=endVariation;
+                 var varNo = load(moves.substring(result.index+1,moveRegexp.lastIndex-1));
+                 if (varNo<0){
+                     return -1;
+                 }
+                 for (i =0;i<varNo;i++){
+                     opening.prevMove();
+                     game.undo();
+                 }
+                 game.move(opening.nextMove());
+             }
+         }
+         return no;
+     }
+
+        function parse_pgn_header(header, options) {
+            var newline_char = (typeof options === 'object' &&
+            typeof options.newline_char === 'string') ?
+                options.newline_char : '\r?\n';
+            var header_obj = {};
+            var headers = header.split(new RegExp(mask(newline_char)));
+            var key = '';
+            var value = '';
+
+            for (var i = 0; i < headers.length; i++) {
+                key = headers[i].replace(/^\[([A-Z][A-Za-z]*)\s.*\]$/, '$1');
+                value = headers[i].replace(/^\[[A-Za-z]+\s"(.*)"\]$/, '$1');
+                if (trim(key).length > 0) {
+                    header_oj[key] = value;
+                }
+            }
+
+            return header_obj;
+        }
+
+        this.load = function(pgn) {
+
+
+            var newline_char = (typeof options === 'object' &&
+            typeof options.newline_char === 'string') ?
+                options.newline_char : '\r?\n';
+            var regex = new RegExp('^(\\[(.|' + mask(newline_char) + ')*\\])' +
+                '(' + mask(newline_char) + ')*' +
+                '1.(' + mask(newline_char) + '|.)*$', 'g');
+
+            /* get header part of the PGN file */
+            var header_string = pgn.replace(regex, '$1');
+
+            /* no info part given, begins with moves */
+            if (header_string[0] !== '[') {
+                header_string = '';
+            }
+
+
+            game.reset();
+
+            /* parse PGN header */
+            var headers = parse_pgn_header(header_string, options);
+            for (var key in headers) {
+                set_header([key, headers[key]]);
+            }
+
+            /* load the starting position indicated by [Setup '1'] and
+             * [FEN position] */
+            if (headers['SetUp'] === '1') {
+                if (!(('FEN' in headers) && load(headers['FEN']))) {
+                    return false;
+                }
+            }
+
+            /* delete header to get the moves */
+            var ms = pgn.replace(header_string, '').replace(new RegExp(mask(newline_char), 'g'), ' ');
+
+            /* delete comments */
+            //ms = ms.replace(/(\{[^}]+\})+?/g, '');
+
+            /* delete recursive annotation variations */
+            //var rav_regex = /(\([^\(\)]+\))+?/g
+            //while (rav_regex.test(ms)) {
+            //    ms = ms.replace(rav_regex, '');
+            //}
+
+            /* delete move numbers */
+            ms = ms.replace(/\d+\./g, '');
+
+            /* delete ... indicating black to move */
+            ms = ms.replace(/\.\.\./g, '');
+
+            /* trim and get array of moves */
+            var moves = trim(ms).split(new RegExp(/\s+(?!\$\d|\{.+\})/));
+
+
+            return load(ms);
+
+
+
+        }
 };
 
 var Opening = function() {
@@ -408,7 +640,10 @@ var Opening = function() {
 
 
     return {
-        currentMove: function (){
+        currentMove: function (move){
+            if (move != undefined){
+                currentMove=move;
+            }
           return currentMove;
         },
         createMove: function(move) {
@@ -495,8 +730,10 @@ var Opening = function() {
 if (typeof exports !== 'undefined') exports.Opening = Opening;
 if (typeof exports !== 'undefined') exports.HtmlRenderer = HtmlRenderer;
 if (typeof exports !== 'undefined') exports.PgnRenderer = PgnRenderer;
+if (typeof exports !== 'undefined') exports.PgnLoader = PgnLoader;
 
 /* export Chess object for any RequireJS compatible environment */
 if (typeof define !== 'undefined') define( function () { return Opening;  });
 if (typeof define !== 'undefined') define( function () { return HtmlRenderer; });
 if (typeof define !== 'undefined') define( function () { return PgnRenderer; });
+if (typeof define !== 'undefined') define( function () { return PgnLoader; });

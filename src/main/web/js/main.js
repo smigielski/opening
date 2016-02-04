@@ -100,6 +100,14 @@ var Main = function() {
         updateMoveTable();
     };
 
+    var updatePgn = function(){
+        game.reset();
+        opening = new Opening();
+        new PgnLoader(game,opening).load($("#pgn").val());
+        board.position(game.fen());
+        updateMoveTable();
+    };
+
     //Renderer
 
 
@@ -113,7 +121,25 @@ var Main = function() {
 
         $("#moves").empty().append(fragment);
 
-        $("#pgn").val(opening.render(new PgnRenderer()));
+
+
+        //check if pgn is reversible
+
+
+        var pgn1 = opening.render(new PgnRenderer());
+
+        $("#pgn").val(pgn1);
+
+        var testGame = new Chess();
+        var testOpening = new Opening();
+        new PgnLoader(testGame,testOpening).load(pgn1);
+        var pgn2 = testOpening.render(new PgnRenderer());
+
+        if (pgn1!=pgn2){
+            alert("Wrong pgn: " + pgn1);
+        }
+
+
 
         var currentMove = opening.currentMove();
 
@@ -121,6 +147,8 @@ var Main = function() {
         //TODO implement
         $("#move-nag").val(currentMove.nag);
         $("#move-comment").val(currentMove.comment);
+
+        $('#fen').html(game.fen());
 
 
     };
@@ -172,6 +200,7 @@ var Main = function() {
     $(window).resize(board.resize);
     $("#move-nag").change(updateNag);
     $("#move-comment").change(updateComment);
+    $("#pgn").change(updatePgn);
 
 
 

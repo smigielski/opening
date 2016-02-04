@@ -5,6 +5,7 @@ if (typeof require != "undefined") {
     var Chess = require('../../../main/web/bower_components/chess.js/chess.js').Chess;
     var Opening = require('../../../main/web/js/opening.js').Opening;
     var PgnRenderer = require('../../../main/web/js/opening.js').PgnRenderer;
+    var PgnLoader = require('../../../main/web/js/opening.js').PgnLoader;
     var HtmlRenderer = require('../../../main/web/js/opening.js').HtmlRenderer;
 }
 
@@ -137,6 +138,26 @@ describe("PGP Renderer", function() {
         assert.equal(pgn,'1. e4 c5 2. Nf3 e6 { Sicilian Defence, French Variation } ( 2. ... d6 )');
     });
 
+    it('test two variations with black in pgn', function () {
+        opening.createMove(game.move('e4'));
+        opening.createMove(game.move('c5'));
+        opening.prevMove();
+        game.undo();
+        opening.createMove(game.move('d5'));
+        opening.prevMove();
+        game.undo();
+        game.move(opening.nextMove());
+        opening.createMove(game.move('Nf3'));
+        opening.createMove(game.move('e6'));
+        opening.updateComment("Sicilian Defence, French Variation");
+        opening.prevMove();
+        game.undo();
+        opening.createMove(game.move('d6'));
+
+        var pgn = opening.render(new PgnRenderer());
+        assert.equal(pgn,'1. e4 c5 ( 1. ... d5 ) 2. Nf3 e6 { Sicilian Defence, French Variation } ( 2. ... d6 )');
+    });
+
     it('test variations with black in pgn', function () {
         opening.createMove(game.move('e4'));
         opening.createMove(game.move('c5'));
@@ -170,6 +191,79 @@ describe("PGP Renderer", function() {
         var pgn = opening.render(new PgnRenderer());
         assert.equal(pgn,'1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) )');
     });
+
+    it('test double variations with black in pgn', function () {
+        opening.createMove(game.move('e4'));
+        opening.createMove(game.move('c5'));
+        opening.createMove(game.move('Nf3'));
+        opening.updateComment("Sicilian Defence, French Variation");
+        opening.prevMove();
+        game.undo();
+        opening.createMove(game.move('d4'));
+        opening.createMove(game.move('cxd4'));
+        opening.prevMove();
+        game.undo();
+        opening.createMove(game.move('Nc6'));
+        opening.prevMove();
+        game.undo();
+        opening.prevMove();
+        game.undo();
+        opening.prevMove();
+        game.undo();
+        game.move(opening.nextMove());
+        opening.createMove(game.move('c4'));
+        opening.createMove(game.move('d5'));
+        var pgn = opening.render(new PgnRenderer());
+        assert.equal(pgn,'1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) ) ( 2. c4 d5 )');
+    });
+
+});
+
+describe("PGP Loader", function() {
+
+    var tests = [
+        { name: "pgn", pgn: "1. e4" },
+        { name: "simple pgn", pgn: "1. e4 e5 2. d4" },
+        { name: "nag in pgn", pgn: "1. e4!! e5?! 2. d4?? d5!?" },
+        { name: "nag numneric in pgn", pgn: "1. e4!! e5?! 2. d4?? d5 $8" },
+        { name: "comments pgn", pgn: "1. e4 { E4 opening } c5 2. Nf3 e6 { Sicilian Defence, French Variation }" },
+        { name: "variation with black", pgn: "1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ) 2. ... d6" },
+        { name: "variation with black", pgn: "1. e4 c5 2. Nf3 e6 { Sicilian Defence, French Variation } ( 2. ... d6 )" },
+        { name: "two variation with black", pgn: "1. e4 c5 ( 1. ... d5 ) 2. Nf3 e6 { Sicilian Defence, French Variation } ( 2. ... d6 )" },
+        { name: "nested variation", pgn: "1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) )" },
+        { name: "double variation", pgn: "1. e4 c5 2. Nf3 { Sicilian Defence, French Variation } ( 2. d4 cxd4 ( 2. ... Nc6 ) ) ( 2. c4 d5 )" },
+        { name: "knigth capture", pgn: "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 a6" },
+        { name: "queen", pgn: "1. e4 e5 ( 1. ... d5 2. e5 f5 3. exf6 Kd7 4. fxg7 d4 5. gxh8=Q )"}
+    ];
+
+    var game, opening;
+
+    beforeEach(function () {
+        game = new Chess();
+        opening = new Opening();
+    });
+
+
+    tests.forEach(function(test, i) {
+        var passed = true;
+
+        it(test.name, function() {
+            var success = new PgnLoader(game,opening).load(test.pgn);
+            assert.ok(success);
+            assert.equal(opening.render(new PgnRenderer()),test.pgn);
+        });
+    });
+
+    //it ('matchBracket', function () {
+    //    var loader = new PgnLoader();
+    //    assert.equal(-1, loader.matchBracket('',0));
+    //    assert.equal(2, loader.matchBracket('()',0));
+    //    assert.equal(-1, loader.matchBracket('( ( )',0));
+    //    assert.equal(18, loader.matchBracket('( ( ( ( ) ) as ) )',0));
+    //
+    //});
+
+
 
 });
 
