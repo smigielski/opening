@@ -2,11 +2,11 @@ if (typeof require != "undefined") {
     var chai = require('chai');
     var jsdom = require("jsdom");
 
-    var Chess = require('../../../main/web/bower_components/chess.js/chess.js').Chess;
-    var Opening = require('../../../main/web/js/opening.js').Opening;
-    var PgnRenderer = require('../../../main/web/js/opening.js').PgnRenderer;
-    var PgnLoader = require('../../../main/web/js/opening.js').PgnLoader;
-    var HtmlRenderer = require('../../../main/web/js/opening.js').HtmlRenderer;
+    var Chess = require('../../../main/static/bower_components/chess.js/chess.js').Chess;
+    var Opening = require('../../../main/static/js/opening.js').Opening;
+    var PgnRenderer = require('../../../main/static/js/opening.js').PgnRenderer;
+    var PgnLoader = require('../../../main/static/js/opening.js').PgnLoader;
+    var HtmlRenderer = require('../../../main/static/js/opening.js').HtmlRenderer;
 }
 
 var assert = chai.assert;
