@@ -1,11 +1,14 @@
 package pl.linuh.opening
 
 import groovy.util.logging.Log
+import org.junit.Before
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.SpringApplicationConfiguration
 import org.springframework.boot.test.WebIntegrationTest
 import org.springframework.test.context.ActiveProfiles
 import pl.linuh.opening.application.OpeningApplication
+import pl.linuh.opening.model.Opening
+import pl.linuh.opening.model.OpeningGame
 import pl.linuh.opening.repositories.GameRepository
 import pl.linuh.opening.repositories.OpeningRepository
 import spock.lang.Specification
@@ -29,35 +32,77 @@ class LearningOpeningsSpec extends Specification {
 
     def "check start new game with white"(){
         given:
-            username = "test"
-            openingName = "e4"
-            with().post("/api/v1/"+username+"/openings/"+openingName);
-            assert openingRepository.count() == 1
+
+            assert openingRepository.count() == 0
             assert gameRepository.count() == 0
+
         when:
-            location = with().post("/api/v1/"+username+"/openings/"+openingName);
+            with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+            def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+            def location = response.getHeader("Location")
 
         then:
-            location == "/api/v1/"+username+"/openings/"+openingName+"/{game}/1"
             gameRepository.count() == 1
+            OpeningGame storedGame  = gameRepository.findAll().first()
+        location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/1"
+            storedGame.user.username == "test"
+            storedGame.opening.name == "e4"
     }
 
+
+    def "check start new game with black"(){
+        given:
+
+            assert openingRepository.count() == 0
+            assert gameRepository.count() == 0
+
+        when:
+            with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+            def response = with().contentType("application/json").body([pieces: "black"]).post("/api/v1/test/openings/e4/games")
+            def location = response.getHeader("Location")
+
+        then:
+
+        gameRepository.count() == 1
+        OpeningGame storedGame  = gameRepository.findAll().first()
+        location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/2"
+        storedGame.user.username == "test"
+        storedGame.opening.name == "e4"
+    }
     //test start with black
 
     def "check initial position with white"() {
         given:
-            username = "test"
-            openingName = "e4"
-            with().post("/api/v1/"+username+"/openings/"+openingName);
-            assert openingRepository.count() == 1
-            assert gameRepository.count() == 0
+        assert openingRepository.count() == 0
+        assert gameRepository.count() == 0
+        with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+        def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+        def location = response.getHeader("Location")
+
         when:
-            location = with().post("/api/v1/"+username+"/openings/"+openingName);
-            game = with().get(location);
+            def game = with().get(location).as(OpeningGame.class);
 
         then:
-            game.pgn == ""
+            game.pgn == "\n"
+            game.id != null
+            game.uuid != null
+    }
 
+    def "check initial position with black"() {
+        given:
+        assert openingRepository.count() == 0
+        assert gameRepository.count() == 0
+        with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+        def response = with().contentType("application/json").body([pieces: "black"]).post("/api/v1/test/openings/e4/games")
+        def location = response.getHeader("Location")
+
+        when:
+        def game = with().get(location).as(OpeningGame.class);
+
+        then:
+        game.pgn == "1. e4\n"
+        game.id != null
+        game.uuid != null
     }
 
     def "check first move is correct"() {
@@ -70,7 +115,7 @@ class LearningOpeningsSpec extends Specification {
 
         when:
             location = with().post("/api/v1/"+username+"/openings/"+openingName);
-            postResult = with().post(location);
+            postResult = with().get(location);
             location = ""
 
         then:
@@ -78,6 +123,10 @@ class LearningOpeningsSpec extends Specification {
 
     }
 
-
+    @Before
+    public clean(){
+        openingRepository.deleteAll();
+        gameRepository.deleteAll();
+    }
     // helper methods
 }

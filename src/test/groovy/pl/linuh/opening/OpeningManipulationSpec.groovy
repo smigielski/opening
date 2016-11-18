@@ -61,7 +61,6 @@ class OpeningManipulationSpec extends Specification {
     def "update opening should not create new one"() {
         given:
         assert openingRepository.count() == 0
-
             with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4");
         when:
             def opening = with().get("/api/v1/test/openings/e4").as(Opening.class)
