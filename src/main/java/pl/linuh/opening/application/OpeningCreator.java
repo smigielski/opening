@@ -2,6 +2,7 @@ package pl.linuh.opening.application;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +23,6 @@ public class OpeningCreator {
     @Autowired
     private UserRepository userRepository;
 
-    private boolean autocreate = true;
 
     //list all openings
     @RequestMapping(value = "/api/v1/{username}/openings")
@@ -32,25 +32,30 @@ public class OpeningCreator {
 
     //create new opening?
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}",method = RequestMethod.PUT)
-    public Opening storeOpening(Opening opening, @PathVariable("username") String username, @PathVariable("openingName") String openingName) {
+    public Opening storeOpening(@RequestBody Opening opening, @PathVariable("username") String username, @PathVariable("openingName") String openingName) {
+        assert openingName!=null && openingName.equals(opening.getName());
+
         User user = userRepository.findByUsername(username);
-        if (user == null && autocreate){
+        if (user == null){
+            //TODO add usermanagment
             user = new User(username);
+            userRepository.save(user);
         }
-        if (opening.getId()==0){
-            opening.setUser(user);
-        }
+        opening.setUser(user);
+
         return openingRepository.save(opening);
     }
 
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}")
     public Opening getOpening(@PathVariable("username") String username, @PathVariable("openingName") String openingName) {
-        return openingRepository.findByUserAndName(username,openingName);
+        User user = userRepository.findByUsername(username);
+        return openingRepository.findByUserAndName(user,openingName);
     }
 
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}", method = RequestMethod.DELETE)
     public void deleteOpening(@PathVariable("username") String username, @PathVariable("openingName") String openingName) {
-        Opening opening = openingRepository.findByUserAndName(username,openingName);
+        User user = userRepository.findByUsername(username);
+        Opening opening = openingRepository.findByUserAndName(user,openingName);
         openingRepository.delete(opening);
     }
 
