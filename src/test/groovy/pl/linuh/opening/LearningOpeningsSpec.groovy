@@ -44,7 +44,7 @@ class LearningOpeningsSpec extends Specification {
         then:
             gameRepository.count() == 1
             OpeningGame storedGame  = gameRepository.findAll().first()
-        location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/1"
+            location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/0"
             storedGame.user.username == "test"
             storedGame.opening.name == "e4"
     }
@@ -65,7 +65,7 @@ class LearningOpeningsSpec extends Specification {
 
         gameRepository.count() == 1
         OpeningGame storedGame  = gameRepository.findAll().first()
-        location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/2"
+        location == "/api/v1/test/openings/e4/games/"+storedGame.id+"/1"
         storedGame.user.username == "test"
         storedGame.opening.name == "e4"
     }
@@ -100,33 +100,35 @@ class LearningOpeningsSpec extends Specification {
         def game = with().get(location).as(OpeningGame.class);
 
         then:
-        game.pgn == "1. e4\n"
+        game.pgn == "\n1. e4 \n"
         game.id != null
         game.uuid != null
     }
 
     def "check first move is correct"() {
         given:
-            username = "test"
-            openingName = "e4"
-            with().post("/api/v1/"+username+"/openings/"+openingName);
-            assert openingRepository.count() == 1
+            assert openingRepository.count() == 0
             assert gameRepository.count() == 0
+            with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+            def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+            def location = response.getHeader("Location")
 
         when:
-            location = with().post("/api/v1/"+username+"/openings/"+openingName);
-            postResult = with().get(location);
-            location = ""
+
+            def postResult = with().contentType("application/json").body("e4").post(location);
+            def resultLocation = postResult.getHeader("Location")
 
         then:
-            localtion == "/api/v1/"+username+"/openings/"+openingName+"/{game}/3"
+        gameRepository.count() == 1
+        OpeningGame storedGame  = gameRepository.findAll().first()
+            resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/2";
 
     }
 
     @Before
     public clean(){
-        openingRepository.deleteAll();
         gameRepository.deleteAll();
+        openingRepository.deleteAll();
     }
     // helper methods
 }
