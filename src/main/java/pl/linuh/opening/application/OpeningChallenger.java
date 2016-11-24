@@ -14,18 +14,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import pl.linuh.opening.repositories.UserRepository;
 import pl.linuh.opening.model.Opening;
 import pl.linuh.opening.model.OpeningGame;
 import pl.linuh.opening.model.ResponseMessage;
 import pl.linuh.opening.model.User;
 import pl.linuh.opening.repositories.GameRepository;
 import pl.linuh.opening.repositories.OpeningRepository;
-import pl.linuh.opening.repositories.UserRepository;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -289,7 +287,7 @@ public class OpeningChallenger {
     private String getPgn(Game game){
         StringWriter stringWriter = new StringWriter();
         PGNWriter writer = new PGNWriter(stringWriter);
-        writer.write(game.getModel());
+        writer.writeMovesOnly(game.getModel());
         return stringWriter.toString();
     }
 

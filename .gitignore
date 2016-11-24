@@ -1,1 +1,13 @@
-target
+.project
+target/
+build/
+.gradle
+.settings
+.classpath
+*.iml
+.idea
+dependency-reduced-pom.xml
+.DS_Store
+.contract
+**/docker.info
+generated-sources

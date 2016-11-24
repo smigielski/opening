@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import pl.linuh.opening.model.User;
-import pl.linuh.opening.repositories.OpeningRepository;
 import pl.linuh.opening.model.Opening;
 import pl.linuh.opening.repositories.UserRepository;
+import pl.linuh.opening.model.User;
+import pl.linuh.opening.repositories.OpeningRepository;
 
 /**
  * @author marek on 24/10/15.

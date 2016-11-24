@@ -1,26 +1,19 @@
-package pl.linuh.opening
+package pl.linuh.opening.application
 
 import groovy.util.logging.Log
 import org.junit.Before
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.SpringApplicationConfiguration
-import org.springframework.boot.test.WebIntegrationTest
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import pl.linuh.opening.application.OpeningApplication
-import pl.linuh.opening.model.Opening
 import pl.linuh.opening.model.OpeningGame
-import pl.linuh.opening.model.ResponseMessage
 import pl.linuh.opening.repositories.GameRepository
 import pl.linuh.opening.repositories.OpeningRepository
 import spock.lang.Specification
 
 import static com.jayway.restassured.RestAssured.*
-import static com.jayway.restassured.matcher.RestAssuredMatchers.*
-import static org.hamcrest.Matchers.*
 
 @Log
-@SpringApplicationConfiguration(OpeningApplication.class)
-@WebIntegrationTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class LearningOpeningsSpec extends Specification {
 
@@ -188,7 +181,7 @@ class LearningOpeningsSpec extends Specification {
     }
 
     @Before
-    public clean(){
+    public void clean(){
         gameRepository.deleteAll();
         openingRepository.deleteAll();
     }

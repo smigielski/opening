@@ -1,24 +1,17 @@
-package pl.linuh.opening
+package pl.linuh.opening.application
 
-import com.jayway.restassured.RestAssured
 import groovy.util.logging.Log
 import org.junit.Before
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.SpringApplicationConfiguration
-import org.springframework.boot.test.WebIntegrationTest
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
-import pl.linuh.opening.application.OpeningApplication
 import pl.linuh.opening.model.Opening
 import pl.linuh.opening.repositories.OpeningRepository
 import spock.lang.Specification
 import static com.jayway.restassured.RestAssured.*
-import static com.jayway.restassured.matcher.RestAssuredMatchers.*
-import static org.hamcrest.Matchers.*
 
 @Log
-@SpringApplicationConfiguration(OpeningApplication.class)
-@WebIntegrationTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 class OpeningManipulationSpec extends Specification {
 

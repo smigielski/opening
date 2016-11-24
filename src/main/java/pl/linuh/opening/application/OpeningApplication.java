@@ -3,9 +3,8 @@ package pl.linuh.opening.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -14,9 +13,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @author marek on 24/10/15.
  */
 
-@Configuration
+@SpringBootApplication
 @EnableAutoConfiguration
-@ComponentScan({"pl.linuh.opening"})
+//@Configuration
+//@ComponentScan({"pl.linuh.opening"})
 @EnableTransactionManagement
 @EnableJpaRepositories("pl.linuh.opening.repositories")
 @EnableJpaAuditing
