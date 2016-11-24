@@ -220,19 +220,31 @@ public class OpeningChallenger {
 
                 int moveVariation = containsMove(move, possibleMoves);
 
+
+
+
+                ResponseMessage.MoveStatus moveStatus;
                 if (moveVariation>=0){
+
+                    openingGame.goForward(moveVariation);
+                    short[] nags = openingGame.getNags();
+
+                    if (nags!=null && nags.length>0){
+                        moveStatus = ResponseMessage.MoveStatus.valueOf(nags[0]);
+                    } else {
+                        moveStatus = ResponseMessage.MoveStatus.NORMAL_MOVE;
+                    }
+
                     currentGame.getPosition().doMove(possibleMoves[moveVariation]);
                     game.setPgn(getPgn(currentGame));
                     gameRepository.save(game);
 
-                    return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
-                            + game.getId() + "/" + (ply+2), ResponseMessage.MoveStatus.NORMAL_MOVE);
-
                 } else {
-                    return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
-                            + game.getId() + "/" + ply, ResponseMessage.MoveStatus.UNKNOW_MOVE);
+                    moveStatus = ResponseMessage.MoveStatus.UNKNOW_MOVE;
                 }
 
+                return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
+                        + game.getId() + "/" + (ply+(moveStatus.isAcceptable()?2:0)), moveStatus);
 
 
             } else {

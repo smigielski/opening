@@ -129,7 +129,7 @@ class LearningOpeningsSpec extends Specification {
 
     }
 
-    def "check first move is incorrect"() {
+    def "check first move is unknow"() {
         given:
         assert openingRepository.count() == 0
         assert gameRepository.count() == 0
@@ -139,7 +139,7 @@ class LearningOpeningsSpec extends Specification {
 
         when:
 
-        def postResult = with().contentType("application/json").body("e5").post(location);
+        def postResult = with().contentType("application/json").body("d4").post(location);
         def resultLocation = postResult.getHeader("Location")
         OpeningGame storedGame  = gameRepository.findAll().first()
 
@@ -148,8 +148,27 @@ class LearningOpeningsSpec extends Specification {
         postResult.statusCode == 302
         resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/0";
         postResult.path("status") == -1
+    }
 
+    def "check first move is bad"() {
+        given:
+        assert openingRepository.count() == 0
+        assert gameRepository.count() == 0
+        with().contentType("application/json").body([name: 'e4', pgn: "1. e4 ( 1. e3? ) e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+        def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+        def location = response.getHeader("Location")
 
+        when:
+
+        def postResult = with().contentType("application/json").body("e3").post(location);
+        def resultLocation = postResult.getHeader("Location")
+        OpeningGame storedGame  = gameRepository.findAll().first()
+
+        then:
+        gameRepository.count() == 1
+        postResult.statusCode == 302
+        resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/0";
+        postResult.path("name") == "POOR_MOVE"
     }
 
     @Before
