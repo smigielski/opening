@@ -171,6 +171,22 @@ class LearningOpeningsSpec extends Specification {
         postResult.path("name") == "POOR_MOVE"
     }
 
+    def "get position after second move"() {
+        given:
+        assert openingRepository.count() == 0
+        assert gameRepository.count() == 0
+        with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+        def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+        def location = response.getHeader("Location")
+        response = with().contentType("application/json").body("e4").post(location);
+        location = response.getHeader("Location")
+
+        when:
+        def game = with().get(location).as(OpeningGame.class);
+        then:
+            game.pgn == "\n1. e4 e5 \n"
+    }
+
     @Before
     public clean(){
         gameRepository.deleteAll();

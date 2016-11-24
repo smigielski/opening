@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Random;
 
 import static pl.linuh.opening.model.OpeningGame.Pieces.black;
 import static pl.linuh.opening.model.OpeningGame.Pieces.white;
@@ -41,6 +42,8 @@ public class OpeningChallenger {
 
     private static final Logger log = LoggerFactory.getLogger(OpeningChallenger.class);
 
+    private static final Random random = new Random();
+
     @Autowired
     private GameRepository gameRepository;
 
@@ -51,31 +54,34 @@ public class OpeningChallenger {
     private UserRepository userRepository;
 
 
-    @RequestMapping(value = "/test", method = RequestMethod.POST)
-    public ResponseMessage.MoveStatus test(HttpServletResponse httpServletResponse,@RequestBody String openingGame) throws IOException {
-        httpServletResponse.setStatus(HttpServletResponse.SC_FOUND);
-        httpServletResponse.setHeader("Location","/");
-
-      return ResponseMessage.MoveStatus.NORMAL_MOVE;
-    }
-
 
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games", method = RequestMethod.POST)
-    public void checkMove(HttpServletResponse httpServletResponse, @RequestBody OpeningGame openingGame, @PathVariable("username") String username,
+    public void checkMove(HttpServletResponse httpServletResponse, @RequestBody OpeningGame game, @PathVariable("username") String username,
                           @PathVariable("openingName") String openingName) {
 
         User user = userRepository.findByUsername(username);
         assert user != null;
-        openingGame.setUser(user);
+        game.setUser(user);
 
         Opening opening = openingRepository.findByUserAndName(user, openingName);
         assert opening != null;
-        openingGame.setOpening(opening);
+        game.setOpening(opening);
 
-        openingGame = gameRepository.save(openingGame);
+
+
+        Game currentGame = loadGame(game.getPgn());
+
+        Game openingGame = loadGame(game.getOpening().getPgn());
+
+        if (game.getPieces()==black) {
+            makeMove(currentGame, openingGame);
+        }
+
+        game.setPgn(getPgn(currentGame));
+        game = gameRepository.save(game);
 
         httpServletResponse.setHeader("Location", "/api/v1/" + username + "/openings/" + openingName + "/games/"
-                + openingGame.getId() + "/" + (openingGame.getPieces() == white ? 0 : 1));
+                + game.getId() + "/" + currentGame.getCurrentMoveNumber());
     }
 
     //api/v1/marek/openings/c3 sicicilian/games/13/1,1,1,2,1,1
@@ -105,7 +111,6 @@ public class OpeningChallenger {
         int variationLevel = 0;
 
 
-        try {
             Game currentGame = loadGame(game.getPgn());
 
             Game openingGame = loadGame(game.getOpening().getPgn());
@@ -125,28 +130,12 @@ public class OpeningChallenger {
                     }
 
 
-                    if (currentGame.getPosition().getFEN() != openingGame.getPosition().getFEN()) {
+                    if (!currentGame.getPosition().getFEN().equals(openingGame.getPosition().getFEN())) {
                         throw new GameError("Game and opening mismatched");
                     }
 
                 } else {
-                    if ((currentGame.getPosition().getToPlay() == Chess.WHITE && game.getPieces() == black) ||
-                            (currentGame.getPosition().getToPlay() == Chess.BLACK && game.getPieces() == white)
-                            ) {
-
-
-                        short[] possibleMoves = openingGame.getNextShortMoves();
-
-                        if (possibleMoves.length > 1) {
-                            currentGame.getPosition().doMove(possibleMoves[Integer.valueOf(variations[variationLevel++])]);
-                        } else {
-                            currentGame.getPosition().doMove(possibleMoves[0]);
-                        }
-
-
-                    } else {
-                        throw new GameError("Forward not allowed");
-                    }
+                    throw new GameError("Forward not allowed");
                 }
                 currentPly++;
             }
@@ -156,11 +145,6 @@ public class OpeningChallenger {
             game.setPgn(getPgn(currentGame));
             //return FEN for the move
             return game;
-
-
-        } catch (IllegalMoveException e) {
-            throw new PGNParsingError(e);
-        }
 
     }
     ///api/v1/test/openings/e4/games/1/0
@@ -234,17 +218,22 @@ public class OpeningChallenger {
                     } else {
                         moveStatus = ResponseMessage.MoveStatus.NORMAL_MOVE;
                     }
+                    if (moveStatus.isAcceptable()) {
+                        currentGame.getPosition().doMove(possibleMoves[moveVariation]);
 
-                    currentGame.getPosition().doMove(possibleMoves[moveVariation]);
-                    game.setPgn(getPgn(currentGame));
-                    gameRepository.save(game);
+                        makeMove(currentGame, openingGame);
+
+
+                        game.setPgn(getPgn(currentGame));
+                        gameRepository.save(game);
+                    }
 
                 } else {
                     moveStatus = ResponseMessage.MoveStatus.UNKNOW_MOVE;
                 }
 
                 return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
-                        + game.getId() + "/" + (ply+(moveStatus.isAcceptable()?2:0)), moveStatus);
+                        + game.getId() + "/" + currentGame.getCurrentPly(), moveStatus);
 
 
             } else {
@@ -258,6 +247,16 @@ public class OpeningChallenger {
 
     }
 
+    private void makeMove(Game currentGame, Game openingGame)  {
+        int numberOfLines  = openingGame.getNumOfNextMoves();
+        int line = random.nextInt(numberOfLines);
+        try {
+            currentGame.getPosition().doMove(openingGame.getNextMove(line));
+        } catch (IllegalMoveException e) {
+            throw new GameError("Illegal move that should not happen",e);
+        }
+    }
+
     private Game loadGame(String pgn) {
         if (pgn == null) {
             return new Game();
@@ -266,6 +265,9 @@ public class OpeningChallenger {
         try {
             PGNReader gameReader = new PGNReader(new StringReader(pgn), "game.pgn");
             Game currentGame = gameReader.parseGame();
+            if (currentGame==null){
+                return new Game();
+            }
             currentGame.gotoStart();
             return currentGame;
 
