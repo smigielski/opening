@@ -45,7 +45,7 @@
 		margin: 15px 10px 20px 10px;
 	}
 
-	#code {
+	#status {
 		display: block;
 		width: 870px;
 		padding: 15px;
@@ -674,7 +674,7 @@
 	//
 
 	function setCode(lines) {
-		$("#code").text(lines.join("\n"));
+		$("#status").text(lines.join("\n"));
 	}
 
 	</script>
@@ -709,7 +709,7 @@
 		<p id="description"></p>
 
 		<h3>Source Code</h3>
-		<pre><code id="code"></code></pre>
+		<pre><status id="status"></status></pre>
 
 		<br/>
 
@@ -790,7 +790,7 @@
 			<li>The legend now works but only if you make the necessary changes to jquery.flot.js. Because of this, I changed the default values for pie.radius and pie.label.show to new 'auto' settings that change the default behavior of the size and labels depending on whether the legend functionality is available or not.</li>
 			<br/>
 			<li style="list-style: none;"><i>v0.1 - June 18th, 2009 - Brian Medendorp</i></li>
-			<li>Rewrote the entire pie code into a flot plugin (since that is now an option), so it should be much easier to use and the code is cleaned up a bit. However, the (standard flot) legend is no longer available because the only way to prevent the grid lines from being displayed also prevents the legend from being displayed. Hopefully this can be fixed at a later date.</li>
+			<li>Rewrote the entire pie status into a flot plugin (since that is now an option), so it should be much easier to use and the status is cleaned up a bit. However, the (standard flot) legend is no longer available because the only way to prevent the grid lines from being displayed also prevents the legend from being displayed. Hopefully this can be fixed at a later date.</li>
 			<li>Restructured and combined some of the options. It should be much easier to deal with now.</li>
 			<li>Added the ability to change the starting point of the pie (still defaults to the top).</li>
 			<li>Modified the default options to show the labels to compensate for the lack of a legend.</li>
@@ -799,7 +799,7 @@
 			<li style="list-style: none;"><i>May 21st, 2009 - Brian Medendorp</i></li>
 			<li>Merged original pie modifications by Sergey Nosenko into the latest SVN version <i>(as of May 15th, 2009)</i> so that it will work with ie8.</li>
 			<li>Pie graph will now be centered in the canvas unless moved because of the legend or manually via the options. Additionally it prevents the pie from being moved beyond the edge of the canvas.</li>
-			<li>Modified the code related to the labelFormatter option to apply flot's legend labelFormatter first. This is so that the labels will be consistent, but still provide extra formatting for the positioned labels (such as adding the percentage value).</li>
+			<li>Modified the status related to the labelFormatter option to apply flot's legend labelFormatter first. This is so that the labels will be consistent, but still provide extra formatting for the positioned labels (such as adding the percentage value).</li>
 			<li>Positioned labels now have their backgrounds applied as a seperate element (much like the legend background) so that the opacity value can be set independently from the label itself (foreground). Additionally, the background color defaults to that of the matching slice.</li>
 			<li>As long as the labelOffset and radiusLimit are not set to hard values, the pie will be shrunk if the labels will extend outside the edge of the canvas</li>
 			<li>Added new options "radiusLimitFactor" and "radiusLimit" which limits how large the (visual) radius of the pie is in relation to the full radius (as calculated from the canvas dimensions) or a hard-pixel value (respectively). This allows for pushing the labels "outside" the pie.</li>

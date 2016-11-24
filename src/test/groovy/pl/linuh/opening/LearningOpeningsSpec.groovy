@@ -9,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles
 import pl.linuh.opening.application.OpeningApplication
 import pl.linuh.opening.model.Opening
 import pl.linuh.opening.model.OpeningGame
+import pl.linuh.opening.model.ResponseMessage
 import pl.linuh.opening.repositories.GameRepository
 import pl.linuh.opening.repositories.OpeningRepository
 import spock.lang.Specification
@@ -105,6 +106,8 @@ class LearningOpeningsSpec extends Specification {
         game.uuid != null
     }
 
+
+
     def "check first move is correct"() {
         given:
             assert openingRepository.count() == 0
@@ -117,11 +120,35 @@ class LearningOpeningsSpec extends Specification {
 
             def postResult = with().contentType("application/json").body("e4").post(location);
             def resultLocation = postResult.getHeader("Location")
+            OpeningGame storedGame  = gameRepository.findAll().first()
+        then:
+            gameRepository.count() == 1
+            postResult.statusCode == 302
+            resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/2"
+            postResult.path("status") == 0
+
+    }
+
+    def "check first move is incorrect"() {
+        given:
+        assert openingRepository.count() == 0
+        assert gameRepository.count() == 0
+        with().contentType("application/json").body([name: 'e4', pgn: "1. e4 e5 2. Nf3 Nf6"]).put("/api/v1/test/openings/e4")
+        def response = with().contentType("application/json").body([pieces: "white"]).post("/api/v1/test/openings/e4/games")
+        def location = response.getHeader("Location")
+
+        when:
+
+        def postResult = with().contentType("application/json").body("e5").post(location);
+        def resultLocation = postResult.getHeader("Location")
+        OpeningGame storedGame  = gameRepository.findAll().first()
 
         then:
         gameRepository.count() == 1
-        OpeningGame storedGame  = gameRepository.findAll().first()
-            resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/2";
+        postResult.statusCode == 302
+        resultLocation == "/api/v1/test/openings/e4/games/"+storedGame.id+"/0";
+        postResult.path("status") == -1
+
 
     }
 

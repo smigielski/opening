@@ -14,15 +14,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import pl.linuh.opening.model.Opening;
 import pl.linuh.opening.model.OpeningGame;
+import pl.linuh.opening.model.ResponseMessage;
 import pl.linuh.opening.model.User;
 import pl.linuh.opening.repositories.GameRepository;
 import pl.linuh.opening.repositories.OpeningRepository;
 import pl.linuh.opening.repositories.UserRepository;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -47,6 +50,16 @@ public class OpeningChallenger {
     @Autowired
     private UserRepository userRepository;
 
+
+    @RequestMapping(value = "/test", method = RequestMethod.POST)
+    public ResponseMessage.MoveStatus test(HttpServletResponse httpServletResponse,@RequestBody String openingGame) throws IOException {
+        httpServletResponse.setStatus(HttpServletResponse.SC_FOUND);
+        httpServletResponse.setHeader("Location","/");
+
+      return ResponseMessage.MoveStatus.NORMAL_MOVE;
+    }
+
+
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games", method = RequestMethod.POST)
     public void checkMove(HttpServletResponse httpServletResponse, @RequestBody OpeningGame openingGame, @PathVariable("username") String username,
                           @PathVariable("openingName") String openingName) {
@@ -66,6 +79,7 @@ public class OpeningChallenger {
     }
 
     //api/v1/marek/openings/c3 sicicilian/games/13/1,1,1,2,1,1
+    //api/v1/test/openings/e4/games/1/0
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}")
     public OpeningGame getPosition(@PathVariable("username") String username,
                                    @PathVariable("openingName") String openingName,
@@ -149,24 +163,25 @@ public class OpeningChallenger {
         }
 
     }
+    ///api/v1/test/openings/e4/games/1/0
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}", method = RequestMethod.POST)
-    public void checkMove(HttpServletResponse httpServletResponse,
+    public ResponseMessage.MoveStatus checkMove(HttpServletResponse httpServletResponse,
                           @RequestBody String move,
                           @PathVariable("username") String username,
                           @PathVariable("openingName") String openingName,
                           @PathVariable("gameId") long gameId,
                           @PathVariable("ply") int ply){
-        checkMove(httpServletResponse,move,username,openingName,gameId,ply,null);
+        return checkMove(httpServletResponse,move,username,openingName,gameId,ply,null);
     }
 
     @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}/{variation}", method = RequestMethod.POST)
-    public void checkMove(HttpServletResponse httpServletResponse,
-                          @RequestBody String move,
-                          @PathVariable("username") String username,
-                          @PathVariable("openingName") String openingName,
-                          @PathVariable("gameId") long gameId,
-                          @PathVariable("ply") int ply,
-                          @PathVariable("variation") String variation) {
+    public ResponseMessage.MoveStatus checkMove(HttpServletResponse httpServletResponse,
+                              @RequestBody String move,
+                              @PathVariable("username") String username,
+                              @PathVariable("openingName") String openingName,
+                              @PathVariable("gameId") long gameId,
+                              @PathVariable("ply") int ply,
+                              @PathVariable("variation") String variation) {
 
         OpeningGame game = gameRepository.findOne(gameId);
         assert game != null;
@@ -176,19 +191,14 @@ public class OpeningChallenger {
         String[] variations = variation != null ? variation.split(",") : new String[0];
         int variationLevel = 0;
 
-
-
         try {
             Game currentGame = loadGame(game.getPgn());
-
             Game openingGame = loadGame(game.getOpening().getPgn());
 
             int currentPly = 0;
 
-
             while (currentPly < ply && currentGame.hasNextMove()) {
                 currentGame.goForward();
-
                 Move[] possibleMoves = openingGame.getNextMoves();
                 if (possibleMoves.length > 1) {
                     openingGame.goForward(Integer.valueOf(variations[variationLevel++]));
@@ -196,18 +206,15 @@ public class OpeningChallenger {
                     openingGame.goForward();
                 }
 
-
                 if (currentGame.getPosition().getFEN() != openingGame.getPosition().getFEN()) {
                     throw new GameError("Game and opening mismatched");
                 }
-
                 currentPly++;
             }
 
             if ((currentGame.getPosition().getToPlay() == Chess.WHITE && game.getPieces() == white) ||
                     (currentGame.getPosition().getToPlay() == Chess.BLACK && game.getPieces() == black)
                     ) {
-
 
                 Move[] possibleMoves = openingGame.getNextMoves();
 
@@ -217,15 +224,14 @@ public class OpeningChallenger {
                     currentGame.getPosition().doMove(possibleMoves[moveVariation]);
                     game.setPgn(getPgn(currentGame));
                     gameRepository.save(game);
-                    httpServletResponse.setHeader("Location", "/api/v1/" + username + "/openings/" + openingName + "/games/"
-                            + game.getId() + "/" + (ply+2));
+
+                    return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
+                            + game.getId() + "/" + (ply+2), ResponseMessage.MoveStatus.NORMAL_MOVE);
 
                 } else {
-                    //TODO 404
+                    return sendResponse(httpServletResponse,"/api/v1/" + username + "/openings/" + openingName + "/games/"
+                            + game.getId() + "/" + ply, ResponseMessage.MoveStatus.UNKNOW_MOVE);
                 }
-
-
-
 
 
 
@@ -273,4 +279,11 @@ public class OpeningChallenger {
         return stringWriter.toString();
     }
 
+    private ResponseMessage.MoveStatus sendResponse(HttpServletResponse httpServletResponse,String location,ResponseMessage.MoveStatus status ){
+
+        httpServletResponse.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+        httpServletResponse.setHeader("Location",location);
+
+        return status;
+    }
 }

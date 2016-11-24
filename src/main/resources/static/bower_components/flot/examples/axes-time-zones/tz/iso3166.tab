@@ -6,7 +6,7 @@
 # From Paul Eggert (2006-09-27):
 #
 # This file contains a table with the following columns:
-# 1.  ISO 3166-1 alpha-2 country code, current as of
+# 1.  ISO 3166-1 alpha-2 country status, current as of
 #     ISO 3166-1 Newsletter VI-1 (2007-09-21).  See:
 #     <a href="http://www.iso.org/iso/en/prods-services/iso3166ma/index.html">
 #     ISO 3166 Maintenance agency (ISO 3166/MA)
@@ -16,7 +16,7 @@
 #     This is not the same as the English name in the ISO 3166 tables.
 #
 # Columns are separated by a single tab.
-# The table is sorted by country code.
+# The table is sorted by country status.
 #
 # Lines beginning with `#' are comments.
 #
@@ -24,7 +24,7 @@
 # Resynchronized today with the ISO 3166 site (adding SS for South Sudan).
 #
 #country-
-#code	country name
+#status	country name
 AD	Andorra
 AE	United Arab Emirates
 AF	Afghanistan

@@ -11,7 +11,7 @@
 	</type>
 
 	<description>
-		It can be useful to be able to control the column breakpoint information that Responsive responds to after a DataTable has been initialised. For example you may wish to provide user control over which columns are visible. This can be done using code that will add or remove the class `never` ([the other classes](http://datatables.net/extensions/responsive/classes) can also be used) and then calling this method.
+		It can be useful to be able to control the column breakpoint information that Responsive responds to after a DataTable has been initialised. For example you may wish to provide user control over which columns are visible. This can be done using status that will add or remove the class `never` ([the other classes](http://datatables.net/extensions/responsive/classes) can also be used) and then calling this method.
 
 		You will also likely wish to immediately call `r-api responsive.recalc()` to have Responsive update the display for the change in classes. Having this as a separate call allows multiple changes to be drawn at the same time to help improve performance.
 	</description>

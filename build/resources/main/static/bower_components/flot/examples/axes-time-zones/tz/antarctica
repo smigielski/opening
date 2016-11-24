@@ -220,7 +220,7 @@ Zone Antarctica/Macquarie 0	-	zzz	1911
 #
 # Zone	NAME		GMTOFF	RULES	FORMAT	[UNTIL]
 Zone Indian/Kerguelen	0	-	zzz	1950	# Port-aux-Francais
-			5:00	-	TFT	# ISO code TF Time
+			5:00	-	TFT	# ISO status TF Time
 #
 # year-round base in the main continent
 # Dumont-d'Urville, Ile des Petrels, -6640+14001, since 1956-11
