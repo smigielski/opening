@@ -1,6 +1,7 @@
 package pl.linuh.opening.application
 
 import groovy.util.logging.Log
+import org.junit.After
 import org.junit.Before
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -78,7 +79,7 @@ class OpeningManipulationSpec extends Specification {
             openingRepository.count() == 0
     }
 
-    @Before
+    @After
     public clean(){
         openingRepository.deleteAll();
     }

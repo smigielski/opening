@@ -1,6 +1,7 @@
 package pl.linuh.opening.application
 
 import groovy.util.logging.Log
+import org.junit.After
 import org.junit.Before
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -180,7 +181,7 @@ class LearningOpeningsSpec extends Specification {
             game.pgn == "\n1. e4 e5 \n"
     }
 
-    @Before
+    @After
     public void clean(){
         gameRepository.deleteAll();
         openingRepository.deleteAll();

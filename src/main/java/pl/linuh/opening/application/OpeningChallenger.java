@@ -53,7 +53,7 @@ public class OpeningChallenger {
 
 
 
-    @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games", method = RequestMethod.POST)
+    @RequestMapping(value = "/v1/{username}/openings/{openingName}/games", method = RequestMethod.POST)
     public void checkMove(HttpServletResponse httpServletResponse, @RequestBody OpeningGame game, @PathVariable("username") String username,
                           @PathVariable("openingName") String openingName) {
 
@@ -84,7 +84,7 @@ public class OpeningChallenger {
 
     //api/v1/marek/openings/c3 sicicilian/games/13/1,1,1,2,1,1
     //api/v1/test/openings/e4/games/1/0
-    @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}")
+    @RequestMapping(value = "/v1/{username}/openings/{openingName}/games/{gameId}/{ply}")
     public OpeningGame getPosition(@PathVariable("username") String username,
                                    @PathVariable("openingName") String openingName,
                                    @PathVariable("gameId") long gameId,
@@ -93,7 +93,7 @@ public class OpeningChallenger {
     }
 
     //api/v1/marek/openings/c3 sicicilian/games/13/1,1,1,2,1,1
-    @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}/{variation}")
+    @RequestMapping(value = "/v1/{username}/openings/{openingName}/games/{gameId}/{ply}/{variation}")
     public OpeningGame getPosition(@PathVariable("username") String username,
                                    @PathVariable("openingName") String openingName,
                                    @PathVariable("gameId") long gameId,
@@ -146,7 +146,7 @@ public class OpeningChallenger {
 
     }
     ///api/v1/test/openings/e4/games/1/0
-    @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}", method = RequestMethod.POST)
+    @RequestMapping(value = "/v1/{username}/openings/{openingName}/games/{gameId}/{ply}", method = RequestMethod.POST)
     public ResponseMessage.MoveStatus checkMove(HttpServletResponse httpServletResponse,
                           @RequestBody String move,
                           @PathVariable("username") String username,
@@ -156,7 +156,7 @@ public class OpeningChallenger {
         return checkMove(httpServletResponse,move,username,openingName,gameId,ply,null);
     }
 
-    @RequestMapping(value = "/api/v1/{username}/openings/{openingName}/games/{gameId}/{ply}/{variation}", method = RequestMethod.POST)
+    @RequestMapping(value = "/v1/{username}/openings/{openingName}/games/{gameId}/{ply}/{variation}", method = RequestMethod.POST)
     public ResponseMessage.MoveStatus checkMove(HttpServletResponse httpServletResponse,
                               @RequestBody String move,
                               @PathVariable("username") String username,
